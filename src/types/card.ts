@@ -1,9 +1,10 @@
 import { ObjectId } from "mongodb";
+import { Schema, Types } from "mongoose";
 
-export interface Card {
+export interface ICard {
   name: string;
   link: string;
-  owner: ObjectId;
-  likes: Array<ObjectId> | [];
+  owner: Schema.Types.ObjectId;
+  likes: Array<Types.ObjectId>,
   createdAt: Date;
 }

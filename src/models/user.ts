@@ -1,49 +1,28 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
-import { User } from "types/user";
+import { IUser } from "types/user";
+const validator = require("validator");
 
-const userSchema = new Schema({
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     required: true,
-    min: 2,
-    max: 30,
+    minLength: 2,
+    maxLength: 30,
   },
   about: {
     type: String,
     required: true,
-    min: 2,
-    max: 200,
+    minLength: 2,
+    maxLength: 30,
   },
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator: (value: string) => validator.isURL(value),
+    },
   },
 });
 
-// export const userSchema = new Schema<User>({
-//     subject: {
-//         type: String,
-//         required: [true, 'googleId is required'],
-//         unique: true,
-//         index: true
-//     },
-//     name: String,
-//     refreshToken: String,
-//     preferences: { required: true, type: preferencesSchema },
-//     scheduleDataArray: {
-//         required: false,
-//         type: [scheduleDataSchema]
-//     },
-//     subscription: {
-//         required: false,
-//         type: subscriptionSchema,
-//         default: undefined
-//     },
-//     notificationPermission: {
-//         required: true,
-//         type: Boolean
-//     }
-// });
-
-export default mongoose.model<User>("user", userSchema);
+export default mongoose.model<IUser>("user", userSchema);

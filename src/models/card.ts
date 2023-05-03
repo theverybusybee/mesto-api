@@ -1,25 +1,29 @@
 import { ObjectId } from "mongodb";
-import mongoose from "mongoose";
-import { Card } from "types/card";
-const { Schema } = mongoose;
+import mongoose, { Schema, Types } from "mongoose";
+import { ICard } from "../types/card";
+const validator = require('validator');
 
-const cardSchema = new Schema({
+const cardSchema = new Schema<ICard>({
   name: {
     type: String,
     required: true,
-    min: 2,
-    max: 30,
+    minLength: 2,
+    maxLength: 30,
   },
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (value: string) => validator.isURL(value),
+    },
   },
   owner: {
-    type: ObjectId,
+    type: Schema.Types.ObjectId,
+    ref: 'user',
     required: true,
   },
   likes: {
-    type: Array<ObjectId>,
+    type: [Types.ObjectId],
     default: [],
   },
   createdAt: {
@@ -28,4 +32,4 @@ const cardSchema = new Schema({
   },
 });
 
-export default mongoose.model<Card>("card", cardSchema);
+export default mongoose.model<ICard>("card", cardSchema);
