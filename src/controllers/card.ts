@@ -4,7 +4,7 @@ import Card from "../models/card";
 export const getCards = (req: Request, res: Response) => {
   return Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch((err) => res.status(500).send({ message: `${err.message}` }));
 };
 
 export const createCard = (req: Request, res: Response) => {
@@ -15,9 +15,10 @@ export const createCard = (req: Request, res: Response) => {
   return Card.create({ name, link, owner: ownerId })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err) {
-        res.status(400).send({ message: "Bad request" });
-        console.error(err.stack);
+      if (err.name === "ValidationError") {
+        res.status(400).send({ message: `${err.message}` });
+      } else {
+        res.status(500).send({ message: `${err.message}` });
       }
     });
 };
@@ -30,12 +31,42 @@ export const deleteCard = (req: Request, res: Response) => {
       if (card) {
         res.send({ data: card });
       } else {
-        res
-          .status(400)
-          .send({ message: `Карточки с id: ${cardId} не существует` });
-        console.error();
+        res.status(404).send({ message: `Нет карточки с id: ${cardId}` });
       }
     })
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }))
-    .catch((err) => console.log(err));
+    .catch((err) => res.status(500).send({ message: `${err.message}` }));
+};
+
+export const setLike = (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const userId = req.user._id;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { $addToSet: { likes: userId } },
+    { new: true }
+  )
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: `Нет карточки с id: ${cardId}` });
+        return;
+      }
+      res.send({ data: card });
+    })
+    .catch((err) => res.status(500).send({ message: `${err.message}` }));
+};
+
+export const removeLike = (req: Request, res: Response) => {
+  const { cardId } = req.params;
+  const userId = req.user._id;
+
+  Card.findByIdAndUpdate(cardId, { $pull: { likes: userId } }, { new: true })
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: `Нет карточки с id: ${cardId}` });
+        return;
+      }
+      res.send({ data: card });
+    })
+    .catch((err) => res.status(500).send({ message: `${err.message}` }));
 };
